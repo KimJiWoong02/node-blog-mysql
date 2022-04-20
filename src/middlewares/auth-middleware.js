@@ -8,7 +8,7 @@ const authMiddleware = (req, res, next) => {
 
   if (!tokenValue || tokenType !== 'Bearer') {
     res.status(401).send({
-      message: '로그인이 필요합니다1.'
+      message: '로그인이 필요합니다.'
     });
     return;
   }
@@ -23,7 +23,7 @@ const authMiddleware = (req, res, next) => {
     });
   } catch (error) {
     res.status(401).send({
-      message: '로그인이 필요합니다2.'
+      message: '로그인이 필요합니다.'
     });
     return;
   }
