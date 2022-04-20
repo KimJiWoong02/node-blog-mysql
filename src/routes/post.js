@@ -20,14 +20,14 @@ postRouter
 
 // 게시글 상세 조회, 수정, 삭제 라우터
 postRouter
-  .route('/:post_id')
+  .route('/:postId')
   .get(detailPost)
   .put(authMiddleware, updatePost)
   .delete(authMiddleware, deletePost);
 
 // 게시글 좋아요 라우터
 postRouter
-  .route('/:post_id/like')
+  .route('/:postId/like')
   .post(authMiddleware, insertLike)
   .delete(authMiddleware, deleteLike);
 

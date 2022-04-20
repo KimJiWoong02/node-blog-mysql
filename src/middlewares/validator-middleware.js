@@ -30,7 +30,13 @@ const signupValidator = (req, res, next) => {
   const { error, value } = userSchema.validate(req.body, options);
 
   if (error) {
-    return res.status(400).send({});
+    if (error.message === '"confirmPassword" must be [ref:password]') {
+      return res
+        .status(400)
+        .send({ message: '비밀번호와 비밀번호 확인란이 같은지 확인해주세요.' });
+    } else {
+      return res.status(400).send({ message: '입력 형식이 잘못되었습니다.' });
+    }
   } else {
     req.body = value;
     next();

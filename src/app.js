@@ -11,7 +11,7 @@ const port = 3000;
 
 // Mysql 연결
 sequelize
-  .sync({ force: false }) // true => 테이블 드랍후 재생성(배포시 false)
+  .sync({ force: false }) // true : 테이블 드랍후 재생성 (배포시 false)
   .then(() => {
     console.log('DB connected');
   })

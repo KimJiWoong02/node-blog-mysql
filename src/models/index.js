@@ -21,7 +21,7 @@ const sequelize = new Sequelize(
 db.sequelize = sequelize;
 
 db.User = User;
-db.User = Admin;
+db.Admin = Admin;
 db.Post = Post;
 db.Comment = Comment;
 db.Like = Like;

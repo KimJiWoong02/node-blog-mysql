@@ -6,7 +6,7 @@ const adminLogin = async (req, res) => {
   try {
     const { nickname, password } = req.body;
 
-    const user = await Admin.findOne({ where: { nickname, password } }); // email과 password가 둘 다 맞아야한다.
+    const user = await Admin.findOne({ where: { nickname, password } }); // nickname과 password가 둘 다 맞아야한다.
 
     if (!user) {
       res.send(400).send({

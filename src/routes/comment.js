@@ -6,7 +6,7 @@ const {
   deleteComment
 } = require('../controllers/comment');
 
-const commentRouter = express.Router();
+const commentRouter = express.Router({ mergeParams: true });
 
 // 댓글 작성 라우터
 commentRouter.route('/').post(authMiddleware, insertComment);

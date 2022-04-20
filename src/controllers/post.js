@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/user');
 const Post = require('../models/post');
 const Comment = require('../models/comment');
 const Like = require('../models/like');
@@ -35,11 +36,13 @@ const getPosts = async (req, res) => {
       });
       post.setDataValue('likeCnt', likes.length);
 
+      post.setDataValue('isLike', false);
+
       // 로그인된 상태라면 좋아요 여부 확인
       if (user) {
-        const like = await Like.findAll({
+        const like = await Like.findOne({
           where: {
-            user_id: user.user_id,
+            user_id: user.userId,
             post_id: post.getDataValue('id')
           }
         });
@@ -49,6 +52,14 @@ const getPosts = async (req, res) => {
           post.setDataValue('isLike', true);
         }
       }
+
+      // 작성자 닉네임 가져오기
+      const postUser = await User.findOne({
+        where: {
+          id: post.user_id
+        }
+      });
+      post.setDataValue('userNickname', postUser.nickname);
 
       // 댓글수 확인
       const comments = await Comment.findAll({
@@ -123,11 +134,13 @@ const detailPost = async (req, res) => {
     });
     post.setDataValue('likeCnt', likes.length);
 
+    post.setDataValue('isLike', false);
+
     // 로그인된 상태라면 좋아요 여부 확인
     if (user) {
-      const like = await Like.findAll({
+      const like = await Like.findOne({
         where: {
-          user_id: user.user_id,
+          user_id: user.userId,
           post_id: post.getDataValue('id')
         }
       });
@@ -137,6 +150,14 @@ const detailPost = async (req, res) => {
         post.setDataValue('isLike', true);
       }
     }
+
+    // 작성자 닉네임 가져오기
+    const postUser = await User.findOne({
+      where: {
+        id: post.user_id
+      }
+    });
+    post.setDataValue('userNickname', postUser.nickname);
 
     // 게시글에 작성된 댓글 추가
     const comments = await Comment.findAll({
@@ -157,7 +178,7 @@ const detailPost = async (req, res) => {
 const updatePost = async (req, res) => {
   try {
     const { postId } = req.params;
-    const { title, content, image_url } = req.body;
+    const { title, content, image_url, layout } = req.body;
 
     // 게시글 수정
     await Post.update(
@@ -165,6 +186,7 @@ const updatePost = async (req, res) => {
         title,
         content,
         image_url,
+        layout,
         updated: Date.now()
       },
       {

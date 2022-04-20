@@ -34,11 +34,11 @@ const userLogin = async (req, res) => {
   try {
     const { nickname, password } = req.body;
 
-    const user = await User.findOne({ where: { nickname, password } }); // email과 password가 둘 다 맞아야한다.
+    const user = await User.findOne({ where: { nickname, password } }); // nickname과 password가 둘 다 맞아야한다.
 
     if (!user) {
-      res.send(400).send({
-        message: '이메일 또는 패스워드가 잘못됐습니다.'
+      res.status(400).send({
+        message: '아이디 또는 패스워드가 잘못됐습니다.'
       });
       return;
     }
