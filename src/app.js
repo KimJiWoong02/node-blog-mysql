@@ -5,9 +5,9 @@ const userRouter = require('./routes/user');
 const adminRouter = require('./routes/admin');
 const postRouter = require('./routes/post');
 const commentRouter = require('./routes/comment');
-const port = 3000;
 
 const app = express();
+const port = 3000;
 
 // Mysql 연결
 sequelize
@@ -27,7 +27,7 @@ const requestMiddleware = (req, res, next) => {
 
 // cors 처리
 app.use(cors());
-app.use(express.json);
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestMiddleware);
 
