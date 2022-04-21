@@ -3,21 +3,21 @@
     "username": "root",
     "password": "1234",
     "database": "magazine",
-    "host": "127.0.0.1",
+    "host": "0.0.0.0",
     "dialect": "mysql"
   },
   "test": {
     "username": "root",
     "password": "1234",
     "database": "magazine_test",
-    "host": "127.0.0.1",
+    "host": "0.0.0.0",
     "dialect": "mysql"
   },
   "production": {
     "username": "root",
     "password": "1234",
     "database": "magazine",
-    "host": "127.0.0.1",
+    "host": "0.0.0.0",
     "dialect": "mysql"
   }
 }
