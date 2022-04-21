@@ -1,7 +1,7 @@
 const express = require('express');
 const { alreadyAuthMiddleware } = require('../middlewares/auth-middleware');
 const { signupValidator } = require('../middlewares/validator-middleware');
-const { userRegister, userLogin } = require('../controllers/user');
+const { userRegister, userLogin, userAuth } = require('../controllers/user');
 
 const userRouter = express.Router();
 
@@ -12,5 +12,8 @@ userRouter
 
 // 유저 로그인
 userRouter.route('/login').post(alreadyAuthMiddleware, userLogin);
+
+// 유저인증
+userRouter.route('/auth').get(userAuth);
 
 module.exports = userRouter;

@@ -13,9 +13,9 @@ const userRegister = async (req, res) => {
       }
     });
 
-    // 이미 가입된 회원이면 CODE:400
+    // 이미 가입된 회원이면 CODE:409
     if (existUsers.length) {
-      res.status(400).send({
+      res.status(409).send({
         message: '이미 가입된 회원입니다.'
       });
       return;
@@ -43,10 +43,7 @@ const userLogin = async (req, res) => {
       return;
     }
 
-    const token = jwt.sign(
-      { userId: user.getDataValue('id'), isAdmin: false },
-      'secretKey'
-    );
+    const token = jwt.sign({ userId: user.id, isAdmin: false }, 'secretKey');
     return res
       .header('authorization', 'Bearer ' + token)
       .status(200)
@@ -59,7 +56,48 @@ const userLogin = async (req, res) => {
   }
 };
 
+// 유저인증
+const userAuth = async (req, res) => {
+  try {
+    const { authorization } = req.headers;
+
+    let user;
+
+    // 토큰 디코딩
+    if (authorization) {
+      const [tokenType, tokenValue] = authorization.split(' ');
+
+      if (tokenType === 'Bearer') {
+        user = jwt.verify(tokenValue, 'secretKey');
+      }
+    }
+
+    // 해당 토큰 유저가 있는지 검색
+    const existUser = await User.findOne({
+      where: {
+        id: user.userId
+      }
+    });
+
+    // 해당 유저가 존재하지 않는 경우
+    if (!existUser) {
+      return res
+        .status(400)
+        .send({ message: '해당 유저가 존재하지 않습니다.' });
+    }
+
+    return res.status(200).send({
+      nickname: existUser.nickname,
+      isAdmin: false
+    });
+  } catch (err) {
+    console.log(err.message);
+    return;
+  }
+};
+
 module.exports = {
   userRegister,
-  userLogin
+  userLogin,
+  userAuth
 };
