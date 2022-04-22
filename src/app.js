@@ -25,28 +25,8 @@ const requestMiddleware = (req, res, next) => {
   next();
 };
 
-const whitelist = [
-  '175.124.188.11',
-  '175.124.188.11:3000',
-  '175.124.188.11:8000',
-  'http://175.124.188.11',
-  'http://175.124.188.11:8080',
-  'http://175.124.188.11:3000',
-  'http://localhost:8080',
-  'http://localhost:8081'
-];
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not Allowed Origin!'));
-    }
-  }
-};
-
 // cors 처리
-app.use(cors(corsOptions));
+app.use(cors({ credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestMiddleware);
