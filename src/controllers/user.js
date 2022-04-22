@@ -49,7 +49,8 @@ const userLogin = async (req, res) => {
       .status(200)
       .send({
         nickname: user.nickname,
-        isAdmin: false
+        isAdmin: false,
+        token: token
       });
   } catch (error) {
     return res.status(400).send({ message: error.message });
