@@ -26,7 +26,7 @@ const requestMiddleware = (req, res, next) => {
 };
 
 // cors 처리
-app.use(cors({ credentials: true }));
+app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestMiddleware);
