@@ -92,18 +92,18 @@ const getPosts = async (req, res) => {
 // 게시글 추가
 const insertPost = async (req, res) => {
   try {
-    const { title, content, imgUrl, layout } = req.body;
+    const { title, content, imageUrl, layout } = req.body;
 
     // 게시글 작성
-    await Post.create({
+    const post = await Post.create({
       user_id: res.locals.userId,
       title,
       content,
-      imgUrl,
+      imageUrl,
       layout
     });
 
-    return res.status(201).send();
+    return res.status(201).send({ postId: post.id });
   } catch (error) {
     return res.status(400).send({ message: error.message });
   }
