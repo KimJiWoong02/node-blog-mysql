@@ -21,7 +21,7 @@ const getPosts = async () => {
 // insertPost. 게시글 작성
 const insertPost = async (user_id, title, content, imageUrl, layout) => {
   try {
-    await Post.create({
+    const post = await Post.create({
       user_id,
       title,
       content,
@@ -29,7 +29,7 @@ const insertPost = async (user_id, title, content, imageUrl, layout) => {
       layout
     });
 
-    return;
+    return post;
   } catch (error) {
     console.log(error.message);
   }

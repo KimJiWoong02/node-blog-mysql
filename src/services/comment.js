@@ -42,13 +42,13 @@ const deleteComments = async post_id => {
 // insertComment. 댓글 작성
 const insertComment = async (user_id, post_id, content) => {
   try {
-    await Comment.create({
+    const comment = await Comment.create({
       user_id,
       post_id,
       content
     });
 
-    return;
+    return comment;
   } catch (error) {
     console.log(error.message);
   }

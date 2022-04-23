@@ -18,9 +18,13 @@ const insertComment = async (req, res) => {
     }
 
     // 댓글 생성
-    await commentService.insertComment(res.locals.userId, postId, content);
+    const comment = await commentService.insertComment(
+      res.locals.userId,
+      postId,
+      content
+    );
 
-    return res.status(201).send();
+    return res.status(201).send({ commentId: comment.id });
   } catch (error) {
     return res.status(400).send({ message: error.message });
   }
