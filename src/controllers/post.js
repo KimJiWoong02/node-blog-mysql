@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/user');
-const Post = require('../models/post');
-const Comment = require('../models/comment');
-const Like = require('../models/like');
+const postService = require('../services/post');
+const commentService = require('../services/comment');
+const userService = require('../services/user');
 
 // 게시글 조회
 const getPosts = async (req, res) => {
@@ -21,22 +20,12 @@ const getPosts = async (req, res) => {
     }
 
     // 삭제되지 않은 모든 게시글 가져오기
-    const posts = await Post.findAll({
-      raw: true,
-      where: {
-        active: true
-      },
-      order: [['createdAt', 'desc']]
-    });
+    const posts = await postService.getPosts();
 
     // for문으로 돌면서 좋아요 수, 여부, 닉네임, 댓글 수 추가
     for (let post of posts) {
       // 좋아요수 확인
-      const likes = await Like.findAll({
-        where: {
-          post_id: post.id
-        }
-      });
+      const likes = await postService.getLikes(post.id);
       post.likeCnt = likes.length;
 
       // 로그인 X 시 기본적으로 좋아요 여부를 false로 설정
@@ -44,12 +33,7 @@ const getPosts = async (req, res) => {
 
       // 로그인된 상태라면 좋아요 여부 확인
       if (user) {
-        const like = await Like.findOne({
-          where: {
-            user_id: user.userId,
-            post_id: post.id
-          }
-        });
+        const like = await postService.findLike(user.userId, post.id);
 
         // 로그인한 유저의 좋아요가 있다면 추가
         if (like) {
@@ -58,19 +42,11 @@ const getPosts = async (req, res) => {
       }
 
       // 작성자 닉네임 추가
-      const postUser = await User.findOne({
-        where: {
-          id: post.user_id
-        }
-      });
+      const postUser = await userService.findUser(post.user_id);
       post.nickname = postUser.nickname;
 
       // 댓글 수 추가
-      const comments = await Comment.findAll({
-        where: {
-          post_id: post.id
-        }
-      });
+      const comments = await commentService.getComments(post.id);
       post.commentCnt = comments.length;
 
       // id를 postId로 변경하여 반환
@@ -95,13 +71,13 @@ const insertPost = async (req, res) => {
     const { title, content, imageUrl, layout } = req.body;
 
     // 게시글 작성
-    const post = await Post.create({
-      user_id: res.locals.userId,
+    const post = await postService.insertPost(
+      res.locals.userId,
       title,
       content,
       imageUrl,
       layout
-    });
+    );
 
     return res.status(201).send({ postId: post.id });
   } catch (error) {
@@ -127,20 +103,10 @@ const detailPost = async (req, res) => {
     }
 
     // 특정 게시글 조회
-    const post = await Post.findOne({
-      raw: true,
-      where: {
-        id: postId,
-        active: true
-      }
-    });
+    const post = await postService.findPost(postId, true);
 
     // 좋아요수 확인
-    const likes = await Like.findAll({
-      where: {
-        post_id: post.id
-      }
-    });
+    const likes = await postService.getLikes(post.id);
     post.likeCnt = likes.length;
 
     // 로그인 X 시 기본적으로 좋아요 여부를 false로 설정
@@ -148,12 +114,7 @@ const detailPost = async (req, res) => {
 
     // 로그인된 상태라면 좋아요 여부 확인
     if (user) {
-      const like = await Like.findOne({
-        where: {
-          user_id: user.userId,
-          post_id: post.id
-        }
-      });
+      const like = await postService.findLike(user.userId, post.id);
 
       // 로그인한 유저의 좋아요가 있다면 추가
       if (like) {
@@ -162,11 +123,7 @@ const detailPost = async (req, res) => {
     }
 
     // 작성자 닉네임 추가
-    const postUser = await User.findOne({
-      where: {
-        id: post.user_id
-      }
-    });
+    const postUser = await userService.findUser(post.user_id);
     post.nickname = postUser.nickname;
 
     // id를 postId로 변경하여 반환
@@ -177,24 +134,12 @@ const detailPost = async (req, res) => {
     delete post.user_id;
     delete post.active;
 
-    // 게시글에 작성된 댓글 추가
-    const comments = await Comment.findAll({
-      raw: true,
-      where: {
-        post_id: postId,
-        active: true
-      },
-      order: [['createdAt', 'desc']]
-    });
+    // 게시글에 작성된 댓글 가져오기
+    const comments = await commentService.getComments(postId);
 
     for (let comment of comments) {
       // 댓글 유저 조회
-      const commentUser = await User.findOne({
-        raw: true,
-        where: {
-          id: comment.user_id
-        }
-      });
+      const commentUser = await userService.findUser(comment.user_id, true);
 
       // 필요한 값 추가
       comment.commentId = comment.id;
@@ -223,12 +168,7 @@ const updatePost = async (req, res) => {
     const { title, content, imageUrl, layout } = req.body;
 
     // 게시글 조회
-    const post = await Post.findOne({
-      where: {
-        id: postId,
-        active: true
-      }
-    });
+    const post = await postService.findPost(postId);
 
     // 해당 게시글이 존재하지 않을때 CODE:404
     if (post === null) {
@@ -245,19 +185,13 @@ const updatePost = async (req, res) => {
     }
 
     // 게시글 수정
-    await Post.update(
-      {
-        title,
-        content,
-        imageUrl,
-        layout
-      },
-      {
-        where: {
-          id: postId,
-          user_id: res.locals.userId
-        }
-      }
+    await postService.updatePost(
+      title,
+      content,
+      imageUrl,
+      layout,
+      postId,
+      res.locals.userId
     );
 
     return res.status(201).send();
@@ -272,12 +206,7 @@ const deletePost = async (req, res) => {
     const { postId } = req.params;
 
     // 게시글 조회
-    const post = await Post.findOne({
-      where: {
-        id: postId,
-        active: true
-      }
-    });
+    const post = await postService.findPost(postId);
 
     // 해당 게시글이 존재하지 않을때 CODE:404
     if (post === null) {
@@ -288,16 +217,7 @@ const deletePost = async (req, res) => {
 
     // 관리자일 경우 조건없이 삭제 처리( delete가 아닌 active = false)
     if (res.locals.isAdmin) {
-      await Post.update(
-        {
-          active: false
-        },
-        {
-          where: {
-            id: postId
-          }
-        }
-      );
+      await postService.deletePostAdmin(postId);
     }
     // 유저일 경우 유저가 작성한 것만 삭제 처리
     else {
@@ -308,30 +228,11 @@ const deletePost = async (req, res) => {
           .send({ message: '해당 게시글을 작성한 유저만 삭제가 가능합니다.' });
       }
 
-      await Post.update(
-        {
-          active: false
-        },
-        {
-          where: {
-            id: postId,
-            user_id: res.locals.userId
-          }
-        }
-      );
+      await postService.deletePostUser(postId, res.locals.userId);
     }
 
     // 삭제 처리 한 게시물의 댓글들도 모두 삭제 처리
-    await Comment.update(
-      {
-        active: false
-      },
-      {
-        where: {
-          post_id: postId
-        }
-      }
-    );
+    await commentService.deleteComments(postId);
 
     return res.status(200).send();
   } catch (error) {
@@ -346,12 +247,7 @@ const insertLike = async (req, res) => {
     const { postId } = req.params;
 
     // 게시글 조회
-    const post = await Post.findOne({
-      where: {
-        id: postId,
-        active: true
-      }
-    });
+    const post = await postService.findPost(postId);
 
     // 해당 게시글이 존재하지 않을때 CODE:404
     if (post === null) {
@@ -361,19 +257,11 @@ const insertLike = async (req, res) => {
     }
 
     // 좋아요 여부를 확인하기 위해 find
-    const existLike = await Like.findOne({
-      where: {
-        user_id: res.locals.userId,
-        post_id: postId
-      }
-    });
+    const existLike = await postService.findLike(res.locals.userId, postId);
 
     // 좋아요를 하지 않았을 시 추가
     if (!existLike) {
-      await Like.create({
-        user_id: res.locals.userId,
-        post_id: postId
-      });
+      await postService.insertLike(res.locals.userId, postId);
     }
 
     return res.status(201).send();
@@ -388,12 +276,7 @@ const deleteLike = async (req, res) => {
     const { postId } = req.params;
 
     // 게시글 조회
-    const post = await Post.findOne({
-      where: {
-        id: postId,
-        active: true
-      }
-    });
+    const post = await postService.findPost(postId);
 
     // 해당 게시글이 존재하지 않을때 CODE:404
     if (post === null) {
@@ -402,13 +285,8 @@ const deleteLike = async (req, res) => {
         .send({ message: '해당 게시글이 존재하지 않습니다.' });
     }
 
-    // 좋아요 취소
-    await Like.destroy({
-      where: {
-        user_id: res.locals.userId,
-        post_id: postId
-      }
-    });
+    // 좋아요 삭제
+    await postService.deleteLike(res.locals.userId, postId);
 
     return res.status(200).send();
   } catch (error) {

@@ -1,22 +1,22 @@
 {
   "development": {
-    "username": "jiwoong",
+    "username": "root",
     "password": "1234",
-    "database": "magazine",
+    "database": "sequelize",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "test": {
-    "username": "jiwoong",
+    "username": "root",
     "password": "1234",
-    "database": "magazine_test",
+    "database": "sequelize_test",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "production": {
-    "username": "jiwoong",
+    "username": "root",
     "password": "1234",
-    "database": "magazine",
+    "database": "sequelize",
     "host": "127.0.0.1",
     "dialect": "mysql"
   }

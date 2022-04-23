@@ -1,5 +1,5 @@
-const Post = require('../models/post');
-const Comment = require('../models/comment');
+const postService = require('../services/post');
+const commentService = require('../services/comment');
 
 // 댓글 추가
 const insertComment = async (req, res) => {
@@ -8,12 +8,7 @@ const insertComment = async (req, res) => {
     const { content } = req.body;
 
     // 게시글 조회
-    const post = await Post.findOne({
-      where: {
-        id: postId,
-        active: true
-      }
-    });
+    const post = await postService.findPost(postId);
 
     // 해당 게시글이 존재하지 않을때 CODE:404
     if (post === null) {
@@ -23,11 +18,7 @@ const insertComment = async (req, res) => {
     }
 
     // 댓글 생성
-    await Comment.create({
-      user_id: res.locals.userId,
-      post_id: postId,
-      content
-    });
+    await commentService.insertComment(res.locals.userId, postId, content);
 
     return res.status(201).send();
   } catch (error) {
@@ -41,12 +32,7 @@ const deleteComment = async (req, res) => {
     const { postId, commentId } = req.params;
 
     // 게시글 조회
-    const post = await Post.findOne({
-      where: {
-        id: postId,
-        active: true
-      }
-    });
+    const post = await postService.findPost(postId);
 
     // 해당 게시글이 존재하지 않을때 CODE:404
     if (post === null) {
@@ -57,17 +43,7 @@ const deleteComment = async (req, res) => {
 
     // 관리자일 경우 조건없이 삭제 처리
     if (res.locals.isAdmin) {
-      await Comment.update(
-        {
-          active: false
-        },
-        {
-          where: {
-            id: commentId,
-            post_id: postId
-          }
-        }
-      );
+      await commentService.deleteCommentAdmin(commentId, postId);
     }
     // 유저일 경우 유저가 작성한 것만 삭제 처리
     else {
@@ -78,17 +54,10 @@ const deleteComment = async (req, res) => {
           .send({ message: '해당 댓글을 작성한 유저만 삭제가 가능합니다.' });
       }
 
-      await Comment.update(
-        {
-          active: false
-        },
-        {
-          where: {
-            id: commentId,
-            user_id: res.locals.userId,
-            post_id: postId
-          }
-        }
+      await commentService.deleteCommentUser(
+        commentId,
+        res.locals.userId,
+        postId
       );
     }
 
@@ -106,12 +75,7 @@ const updateComment = async (req, res) => {
     const { content } = req.body;
 
     // 게시글 조회
-    const post = await Post.findOne({
-      where: {
-        id: postId,
-        active: true
-      }
-    });
+    const post = await postService.findPost(postId);
 
     // 해당 게시글이 존재하지 않을때 CODE:404
     if (post === null) {
@@ -128,17 +92,11 @@ const updateComment = async (req, res) => {
     }
 
     // 댓글 수정
-    await Comment.update(
-      {
-        content: content
-      },
-      {
-        where: {
-          id: commentId,
-          user_id: res.locals.userId,
-          post_id: postId
-        }
-      }
+    await commentService.updateComment(
+      content,
+      commentId,
+      res.locals.userId,
+      postId
     );
 
     return res.status(201).send();

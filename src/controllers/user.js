@@ -1,17 +1,12 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+const userService = require('../services/user');
 
 // 유저 회원가입
 const userRegister = async (req, res) => {
   try {
     const { nickname, password, imageUrl } = req.body;
 
-    // 유저 검색
-    const existUsers = await User.findAll({
-      where: {
-        nickname: nickname
-      }
-    });
+    const existUsers = await userService.nicknameCheck(nickname);
 
     // 이미 가입된 회원이면 CODE:409
     if (existUsers.length) {
@@ -21,7 +16,7 @@ const userRegister = async (req, res) => {
       return;
     }
 
-    await User.create({ nickname, password, imageUrl });
+    await userService.createUser(nickname, password, imageUrl);
 
     return res.status(201).send();
   } catch (error) {
@@ -34,7 +29,7 @@ const userLogin = async (req, res) => {
   try {
     const { nickname, password } = req.body;
 
-    const user = await User.findOne({ where: { nickname, password } }); // nickname과 password가 둘 다 맞아야한다.
+    const user = await userService.loginUser(nickname, password);
 
     if (!user) {
       res.status(400).send({
@@ -73,12 +68,7 @@ const userAuth = async (req, res) => {
       }
     }
 
-    // 해당 토큰 유저가 있는지 검색
-    const existUser = await User.findOne({
-      where: {
-        id: user.userId
-      }
-    });
+    const existUser = await userService.findUser(user.userId);
 
     // 해당 유저가 존재하지 않는 경우
     if (!existUser) {
